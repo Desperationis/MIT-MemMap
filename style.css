@@ -8,12 +8,9 @@
 	width: 50%;
 }
 
-/* 
- * Optional: Makes the sample page fill the window. 
- */
-html,
-body {
-	height: 90%;
+.bottom {
+	display: block;
+	height: 10%;
 	margin: 0;
 	padding: 0;
 }
