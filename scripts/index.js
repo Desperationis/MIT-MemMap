@@ -1,8 +1,11 @@
 import { googleMap, streetView } from "./google_map_init.js";
 import * as util from "./util.js";
 
+let mit_locations = null;
+fetch("./mit_locations.json")
+	.then(response => response.json())
+	.then(data => { mit_locations = data; });
 
-const KillianCourt = { lng: -71.09100901808245, lat: 42.35797801825853 };
 
 /**
  * Return distance, in meters, to a place given the current Street View position.
@@ -20,7 +23,7 @@ function distanceTo(pos) {
 
 function updateDistanceText() {
 	let distanceText = document.getElementById("distance");
-	distanceText.innerText = "Current Distance from Killian Court is " + Math.round(distanceTo(KillianCourt)) + " meters";
+	distanceText.innerText = "Current Distance from Killian Court is " + Math.round(distanceTo(mit_locations.killian_court)) + " meters";
 }
 
 
