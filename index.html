@@ -12,10 +12,16 @@
     <div id="pano"></div>
 
 	<div class="bottom">
-		<button type="button" id="distButton">Ping Distance</button>
-		<button type="button" id="infoButton">Update Debug</button>
-		<p id="distance"></p>
-		<p id="debugText"></p>
+		<!-- Target location the user is supposed to find. -->
+		<p id="targetLocation"></p>
+
+		<!-- Displays message after pressing a button -->
+		<p id="submitText"></p>
+
+		<button type="button" id="checkButton">Check Location</button>
+		<button type="button" id="revealButton">Reveal Location</button>
+		<button type="button" id="resetButton">Choose New Location</button>
+
 	</div>
 
     <!-- 
@@ -25,7 +31,7 @@
       with https://www.npmjs.com/package/@googlemaps/js-api-loader.
       -->
 	<script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiSkzDhy5_3ftSJcqV5iZ4YfBt_n4IjQM&libraries=visualization&callback=initMap&v=weekly"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyApmmjAac8qTM2znw1O8QGtRRvnL2oNhpI&libraries=visualization&callback=initMap&v=weekly"
       defer></script> 
   </body>
 </html>

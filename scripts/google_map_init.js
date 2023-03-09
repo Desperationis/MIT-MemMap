@@ -6,7 +6,8 @@ function initMap() {
 		zoom: 18,
 	});
 
-	streetView = new google.maps.StreetViewPanorama(document.getElementById("pano"), {})
+	streetView = new google.maps.StreetViewPanorama(document.getElementById("pano"), {});
+	console.log(streetView);
 
 	googleMap.setStreetView(streetView);
 	// streetView.addListener("position_changed", updateDistanceText)
@@ -15,9 +16,9 @@ function initMap() {
 		.then(response => response.json())
 		.then(mit_locations => { 
 			console.log(mit_locations);
-			googleMap.setCenter(mit_locations.killian_court);
-			streetView.setPosition(mit_locations.killian_court);
-			streetView.setPov({ heading: 336, pitch: 0});
+			googleMap.setCenter(mit_locations.spawn_point);
+			streetView.setPosition(mit_locations.spawn_point);
+			streetView.setPov({ heading: mit_locations.spawn_point.heading, pitch: mit_locations.spawn_point.pitch });
 		});
 
 }
