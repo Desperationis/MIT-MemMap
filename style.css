@@ -2,16 +2,20 @@
  * Always set the map height explicitly to define the size of the div element
  * that contains the map. 
  */
-#map {
-	float: left;
+
+#viewport {
 	height: 90%;
-	width: 50%;
+	width: 100%;
+	display: flex;
+}
+
+
+#map {
+	flex: 1;
 }
 
 #pano {
-	float: left;
-	height: 90%;
-	width: 50%;
+	flex: 1;
 }
 
 
