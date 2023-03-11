@@ -30,18 +30,20 @@ function onInit(mit_locations) {
 
 
 	/**
-	 * Chooses a position from ANY category at random.
+	 * Chooses a position from whitelisted categories at random.
+	 *
+	 * @param whitelist Array of category strings 
 	 *
 	 * @return { name: name, pos: { lat: double, lng: double } }
 	*/ 
-	function returnRandomSpot() {
+	function randomSpot(whitelist) {
 		const rootKeys = Object.keys(mit_locations);
 		let allLocations = [];
 
 		for(const key of rootKeys) {
 
 			// Categories must have a map of positions
-			if(mit_locations[key].lat == null) {
+			if(mit_locations[key].lat == null && whitelist.includes(key)) {
 				let locations = Object.entries(mit_locations[key]);
 				allLocations = allLocations.concat(locations);
 			}
@@ -52,8 +54,12 @@ function onInit(mit_locations) {
 		return { name: allLocations[randomIndex][0], pos: allLocations[randomIndex][1] };
 	}
 
-	returnRandomSpot();
-
+	function randomWhitelistedSpot() {
+		let locationOptions = Array.from(document.querySelectorAll("li .locationOption").values());
+		locationOptions = locationOptions.filter(loc => loc.checked );
+		locationOptions = locationOptions.map(loc => loc.parentNode.innerText.trim());
+		return randomSpot(locationOptions);
+	}
 
 	newLocButton.addEventListener("click", function() {
 		// Reset position, internal state
@@ -62,15 +68,19 @@ function onInit(mit_locations) {
 		if(targetLocationMarker != null)
 			targetLocationMarker.setMap(null);
 
-		targetLocation = returnRandomSpot();
+		// Only select from categories selected
+		targetLocation = randomWhitelistedSpot();
 
 		submitText.innerText = "";
 		targetLocationText.innerText = "Find the location of " + targetLocation.name + "! Good luck!";
+
 	});
 
 
 	checkButton.addEventListener("click", function() {
 		targetLocationText.innerText = "";
+		if(targetLocationMarker != null)
+			targetLocationMarker.setMap(null);
 
 		let distance = Math.round(util.distanceTo(streetView, targetLocation.pos));
 		if (distance <= 100) {
@@ -90,6 +100,8 @@ function onInit(mit_locations) {
 
 
 	revealButton.addEventListener("click", function() {
+		if(targetLocationMarker != null)
+			targetLocationMarker.setMap(null);
 		util.setMapVisibility(true);
 		targetLocationText.innerText = "";
 		submitText.innerText = "Here is the location of " + targetLocation.name + " on the map.";
