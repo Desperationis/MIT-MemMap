@@ -19,6 +19,10 @@ function onInit(mit_locations) {
 	const checkButton = document.getElementById("checkButton");
 	const revealButton = document.getElementById("revealButton");
 	const newLocButton = document.getElementById("newLocButton");
+	
+	const randomStartCheckbox = document.querySelector("li .randomizationOption");
+
+
 	let targetLocation = null;
 	let targetLocationMarker = null;
 
@@ -62,8 +66,24 @@ function onInit(mit_locations) {
 	}
 
 	newLocButton.addEventListener("click", function() {
-		// Reset position, internal state
-		util.warpTo(googleMap, streetView, mit_locations.spawn_point);
+		// Warp to random spot, if selected.
+		console.log(randomStartCheckbox);
+		if (randomStartCheckbox.checked) {
+			let randomStartSpot = randomWhitelistedSpot().pos;
+
+			util.warpTo(googleMap, streetView, {
+				lat: randomStartSpot.lat,
+				lng: randomStartSpot.lng,
+				heading: 0,
+				pitch: 30
+			});
+		}
+		else {
+			util.warpTo(googleMap, streetView, mit_locations.spawn_point);
+		}
+
+
+		// Reset internal state
 		util.setMapVisibility(false);
 		if(targetLocationMarker != null)
 			targetLocationMarker.setMap(null);
