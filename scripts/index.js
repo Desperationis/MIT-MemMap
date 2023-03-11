@@ -1,116 +1,130 @@
 import { googleMap, streetView } from "./google_map_init.js";
 import * as util from "./util.js";
 
-let mit_locations = null;
-fetch("./mit_locations.json")
-	.then(response => response.json())
-	.then(data => { mit_locations = data; onInit(); });
+function bootstrapProgram() {
+	// Load MIT Locations from JSON
+	fetch("./mit_locations.json")
+		.then(response => response.json())
+		.then(async function(data) { 
+			let mit_locations = data; 
+			onInit(mit_locations); 
+		});
 
-
-/**
- * Return distance, in meters, to a place relative the current Street View position.
- *
- * @param pos { lng: double, lat: double }
- * @return Distance as a double
-*/ 
-function distanceTo(pos) {
-	let currentPos = streetView.getLocation().latLng;
-	let distanceKm = util.getHaversineDist(pos.lat, pos.lng, currentPos.lat(), currentPos.lng());
-
-	return distanceKm * 1000;
-}
-
-/**
- * Warp map and street view to the starting position.
-*/ 
-function warpToSpawn() {
-	let spawnPoint = mit_locations.spawn_point;
-	googleMap.setCenter(spawnPoint);
-	streetView.setPosition(spawnPoint);
-	streetView.setPov({ heading: spawnPoint.heading, pitch: spawnPoint.pitch });
 }
 
 
-/**
- * @return A random location from a subcategory from mit_locations.
-*/ 
-function getRandomLocation(category) {
-	let categoryMap = new Map(Object.entries(mit_locations[category]));
-	let keys = Array.from(categoryMap.keys());
-	let randomKey = keys[Math.floor(Math.random() * keys.length)];
-
-	let value = mit_locations[category][randomKey];
-
-	return { name: randomKey, value: value };
-}
-
-
-/**
- * Control visibility of the google map.
- *
- * @param visible Boolean
-*/ 
-function setMapVisibility(visible) {
-	let googleMapDiv = document.getElementById("map");
-
-	if (visible)
-		googleMapDiv.style.display = "block";
-	else
-		googleMapDiv.style.display = "none";
-}
-
-
-
-let targetLocationMarker = null;
-
-function onInit() {
+function onInit(mit_locations) {
 	const targetLocationText = document.getElementById("targetLocation");
 	const submitText = document.getElementById("submitText");
 	const checkButton = document.getElementById("checkButton");
 	const revealButton = document.getElementById("revealButton");
-	const resetButton = document.getElementById("resetButton");
-
+	const newLocButton = document.getElementById("newLocButton");
 	let targetLocation = null;
+	let targetLocationMarker = null;
 
-	// Hide Google Map so user doesn't cheat
-	function chooseNewLocation() {
-		warpToSpawn();
-		setMapVisibility(false);
-		targetLocation = getRandomLocation("halls");
-		targetLocationText.innerText = "Your target location is: " + targetLocation.name;
-		submitText.innerText = "";
+	// Initial setup
+	util.setMapVisibility(false);
+	submitText.innerText= "Select \"Choose New Location\" to start!";
+
+	util.warpTo(googleMap, streetView, mit_locations.spawn_point);
+
+
+	/**
+	 * Chooses a position from ANY category at random.
+	 *
+	 * @return { name: name, pos: { lat: double, lng: double } }
+	*/ 
+	function returnRandomSpot() {
+		const rootKeys = Object.keys(mit_locations);
+		let allLocations = [];
+
+		for(const key of rootKeys) {
+
+			// Categories must have a map of positions
+			if(mit_locations[key].lat == null) {
+				let locations = Object.entries(mit_locations[key]);
+				allLocations = allLocations.concat(locations);
+			}
+		}
+
+		const randomIndex = Math.floor(Math.random() * allLocations.length);
+
+		return { name: allLocations[randomIndex][0], pos: allLocations[randomIndex][1] };
 	}
-	chooseNewLocation();
+
+	returnRandomSpot();
+
+
+	newLocButton.addEventListener("click", function() {
+		// Reset position, internal state
+		util.warpTo(googleMap, streetView, mit_locations.spawn_point);
+		util.setMapVisibility(false);
+		if(targetLocationMarker != null)
+			targetLocationMarker.setMap(null);
+
+		targetLocation = returnRandomSpot();
+
+		submitText.innerText = "";
+		targetLocationText.innerText = "Find the location of " + targetLocation.name + "! Good luck!";
+	});
+
 
 	checkButton.addEventListener("click", function() {
-		let distance = Math.round(distanceTo(targetLocation.value));
-		if (distance <= 100) {
-			setMapVisibility(true);
+		targetLocationText.innerText = "";
 
-			googleMap.setZoom(18);
-			googleMap.setCenter(targetLocation.value);
+		let distance = Math.round(util.distanceTo(streetView, targetLocation.pos));
+		if (distance <= 100) {
+			util.setMapVisibility(true);
+			targetLocationMarker = new google.maps.Marker({ position: targetLocation.pos });
+			targetLocationMarker.setMap(googleMap);
+			googleMap.panTo(targetLocation.pos);
+
 			submitText.innerText = "Congrats! You are " + distance + " meters away from " + targetLocation.name;
 		}
 		else {
 			submitText.innerText = "Unfortunately, you were " + distance + " meters away from " + targetLocation.name + ". Try again!";
-			warpToSpawn();
+
+			util.warpTo(googleMap, streetView, mit_locations.spawn_point);
 		}
 	});
 
+
 	revealButton.addEventListener("click", function() {
-		setMapVisibility(true);
+		util.setMapVisibility(true);
+		targetLocationText.innerText = "";
+		submitText.innerText = "Here is the location of " + targetLocation.name + " on the map.";
 
-		targetLocationMarker = new google.maps.Marker({ position: targetLocation.value });
+		targetLocationMarker = new google.maps.Marker({ position: targetLocation.pos });
 		targetLocationMarker.setMap(googleMap);
-		googleMap.panTo(targetLocation.value);
+		googleMap.panTo(targetLocation.pos);
 
-		//googleMap.setZoom(18);
-		submitText.innerText = "Here is the location of: " + targetLocation.name;
+		googleMap.setZoom(17);
 	});
 	
-	resetButton.addEventListener("click", function() {
-		chooseNewLocation();
-	});
+
+	/*
+
+	// Select random spot from available, then 
+	const locationOptions = Array.from(document.querySelectorAll("label .locationOption").values());
+
+
+	let targetLocation = null;
+
+	function chooseNewLocation() {
+		console.log(locationOptions);
+		console.log(locationOptions[Math.floor(Math.random() * locationOptions.length)]);
+
+		// Yes, checkbox text is hard-coded to actual category
+		const randomCategory = locationOptions[Math.floor(Math.random() * locationOptions.length)].parentNode.innerText.trim();
+
+		console.log(randomCategory);
+	}
+
+
+	*/
+
 }
 
 
+
+export {bootstrapProgram}
