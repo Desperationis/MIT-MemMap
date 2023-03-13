@@ -13,7 +13,7 @@ function initMap() {
 
 	googleMap.setStreetView(streetView);
 	// streetView.addListener("position_changed", updateDistanceText)
-	
+
 	bootstrapProgram();
 }
 

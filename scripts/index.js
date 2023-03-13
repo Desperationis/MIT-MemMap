@@ -70,10 +70,17 @@ function onInit(mit_locations) {
 		console.log(randomStartCheckbox);
 		if (randomStartCheckbox.checked) {
 			let randomStartSpot = randomWhitelistedSpot().pos;
+			let lat = randomStartSpot.lat;
+			let lng = randomStartSpot.lng;
+
+			if(randomStartSpot.view != null) {
+				lat = randomStartSpot.view.lat;
+				lng = randomStartSpot.view.lng;
+			}
 
 			util.warpTo(googleMap, streetView, {
-				lat: randomStartSpot.lat,
-				lng: randomStartSpot.lng,
+				lat: lat,
+				lng: lng,
 				heading: 0,
 				pitch: 30
 			});
